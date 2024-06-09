@@ -22,6 +22,7 @@ import { ReducerMany, ReturnProps } from "@/lib/reducer";
 import { toByte } from "@/lib/size";
 import { toast } from "sonner";
 import UploadedList from "@/components/UploadedList";
+import Donation from "@/components/Donation";
 
 const schema = z.object({
   unit: z.enum(["kb", "mb"]),
@@ -114,6 +115,7 @@ export default function MainForm() {
   };
   return (
     <div className="xl:translate-y-32 grid xl:justify-center gap-1">
+      <Donation />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onReset={onReset}>
           <Card className="xl:w-96">
