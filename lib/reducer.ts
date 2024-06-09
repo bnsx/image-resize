@@ -1,8 +1,8 @@
-import { FileAtomDataType } from "@/@types/file";
+import { FileState } from "@/@types/file";
 import bic, { Options } from "browser-image-compression";
 
 interface ReducerProps {
-  imageFile: FileAtomDataType;
+  imageFile: FileState;
   maxSizeMB: number;
   signal?: AbortSignal;
   fileType?: string;
@@ -10,10 +10,10 @@ interface ReducerProps {
 }
 export type ReducerReturnProps = {
   blobURL: string;
-  status: FileAtomDataType["status"];
-  savedPercent: FileAtomDataType["savedPercent"];
+  status: FileState["status"];
+  savedPercent: FileState["savedPercent"];
   file: File;
-  newFile?: FileAtomDataType["newFile"];
+  newFile?: FileState["newFile"];
 };
 
 export async function Reducer({
@@ -70,7 +70,7 @@ export async function Reducer({
 }
 
 export async function ReducerMany(
-  imageFiles: FileAtomDataType[],
+  imageFiles: FileState[],
   maxSizeMB: number,
   setCompressingPercent: (blobURL: string, percent: number) => void
 ) {

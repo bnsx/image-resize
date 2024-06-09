@@ -16,12 +16,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "@/components/FormInput";
 import FormSelect from "@/components/FormSelect";
 import { useState } from "react";
-import { MyDropzone } from "./dropzone";
-import { useAtom } from "jotai";
-import { FileAtomDataType, FileAtomStatus, filesAtom } from "@/states/file";
+import { MyDropzone } from "../components/Dropzone";
+import { FileState, FileStatus } from "@/@types/file";
 import { ReducerMany, ReducerReturnProps } from "@/lib/reducer";
 import { computeSize } from "@/lib/size";
 import { toast } from "sonner";
+import UploadedList from "@/components/UploadedList";
 
 const schema = z.object({
   unit: z.enum(["kb", "mb"]),
@@ -29,30 +29,25 @@ const schema = z.object({
     .number()
     .int()
     .positive({ message: "โปรดป้อนตัวเลขที่มีค่ามากกว่า 0" }),
-  // output: z.enum(["image/jpeg", "image/png"]),
 });
 
 const unit_data = [
   { label: "KB", value: "kb" },
   { label: "MB", value: "mb" },
 ];
-// const output_data = [
-//   { label: ".jpg", value: "image/jpeg" },
-//   { label: ".png", value: "image/png" },
-// ];
 
 export default function MainForm() {
-  const [files, setFiles] = useAtom(filesAtom);
+  const [files, setFiles] = useState<FileState[]>([]);
   const [isSubmit, setSubmit] = useState<boolean>(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { maxSize: 600, unit: "kb" },
   });
 
-  const compresseUpdate = (
-    file: FileAtomDataType,
+  const compressedToDoUpdate = (
+    file: FileState,
     reduced: ReducerReturnProps[]
-  ): FileAtomDataType => {
+  ): FileState => {
     const compressedFile = reduced.find(
       (z) => z.blobURL === file.blobURL && z.status === "done"
     );
@@ -65,9 +60,9 @@ export default function MainForm() {
         status: compressedFile.status,
       };
     }
-    return { ...file, status: "incomplete" as FileAtomStatus, savedPercent: 0 };
+    return { ...file, status: "incomplete" as FileStatus, savedPercent: 0 };
   };
-  const compressingPercent = (blobURL: string, progress: number) => {
+  const setCompressingPercent = (blobURL: string, progress: number) => {
     setFiles((prev) =>
       prev.map((file) =>
         file.blobURL === blobURL
@@ -76,7 +71,9 @@ export default function MainForm() {
       )
     );
   };
-
+  const removeFile = (blobURL: string) => {
+    setFiles(files.filter((x) => x.blobURL !== blobURL));
+  };
   const onSubmit = async (value: z.output<typeof schema>) => {
     if (files.length === 0) {
       return toast.error("โปรดอัพโหลดภาพ");
@@ -87,13 +84,13 @@ export default function MainForm() {
       const reduced = await ReducerMany(
         files.filter((x) => x.status !== "done"),
         maxSize,
-        compressingPercent
+        setCompressingPercent
       );
       const updatedFiles = files.map((file) => {
         if (file.status === "done") {
           return file; // Keep done files unchanged
         }
-        return compresseUpdate(file, reduced);
+        return compressedToDoUpdate(file, reduced);
       });
 
       setFiles(updatedFiles);
@@ -107,53 +104,49 @@ export default function MainForm() {
     setSubmit(false);
   };
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} onReset={onReset}>
-        <Card className="xl:w-96">
-          <CardHeader>
-            <CardTitle>บริการลดขนาดไฟล์ภาพฟรี</CardTitle>
-            <CardDescription>
-              รองรับเฉพาะไฟล์นามสกุล .jpg และ .png
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <MyDropzone />
-            <div className="flex items-end gap-1">
-              <FormInput
-                control={form.control}
-                schema={schema}
-                name={"maxSize"}
-                label="ขนาดไฟล์สูงสุด (Max Size)"
-                placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
-                className="w-full"
-              />
-              <FormSelect
-                control={form.control}
-                schema={schema}
-                name={"unit"}
-                data={unit_data}
-              />
-            </div>
-            {/* <FormSelect
-              control={form.control}
-              schema={schema}
-              name={"output"}
-              data={output_data}
-              label="ฟอร์แมตที่ต้องการ (Format)"
-            /> */}
-          </CardContent>
-          <CardFooter>
-            <div className="w-full flex justify-end gap-1">
-              <Button type="reset" variant={"outline"} disabled={isSubmit}>
-                ยกเลิก
-              </Button>
-              <Button type="submit" disabled={isSubmit || files.length === 0}>
-                ดำเนินการ
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      </form>
-    </Form>
+    <div className="translate-y-32 xl:px-0 px-2 grid xl:justify-center gap-1">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} onReset={onReset}>
+          <Card className="xl:w-96">
+            <CardHeader>
+              <CardTitle>บริการลดขนาดไฟล์ภาพฟรี</CardTitle>
+              <CardDescription>
+                รองรับเฉพาะไฟล์นามสกุล .jpg และ .png
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <MyDropzone setFiles={setFiles} />
+              <div className="flex items-end gap-1">
+                <FormInput
+                  control={form.control}
+                  schema={schema}
+                  name={"maxSize"}
+                  label="ขนาดไฟล์สูงสุด (Max Size)"
+                  placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
+                  className="w-full"
+                />
+                <FormSelect
+                  control={form.control}
+                  schema={schema}
+                  name={"unit"}
+                  data={unit_data}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full flex justify-end gap-1">
+                <Button type="reset" variant={"outline"} disabled={isSubmit}>
+                  ยกเลิก
+                </Button>
+                <Button type="submit" disabled={isSubmit || files.length === 0}>
+                  ดำเนินการ
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </form>
+      </Form>
+      <UploadedList files={files} removeFile={removeFile} />
+    </div>
   );
 }

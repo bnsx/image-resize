@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { cn, font } from "@/lib/utils";
 import Footer from "@/components/Footer";
-import Provider from "./provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,10 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(font.className, "bg-primary")}>
-        <Provider>
-          <div className="min-h-screen">{children}</div>
-          <Footer />
-        </Provider>
+        <Toaster richColors={true} position="top-center" />
+        <div className="min-h-screen">{children}</div>
+        <Footer />
       </body>
     </html>
   );

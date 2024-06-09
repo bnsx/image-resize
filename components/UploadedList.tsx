@@ -1,6 +1,6 @@
 "use client";
 
-import { FileAtomDataType } from "@/@types/file";
+import { FileState } from "@/@types/file";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, handleStatusUpdate } from "@/lib/utils";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { formatFileSize } from "@/lib/size";
 import { downloadAll } from "@/lib/download";
 
 interface Props {
-  files: FileAtomDataType[];
+  files: FileState[];
   removeFile: (blobURL: string) => void;
 }
 

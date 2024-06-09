@@ -1,6 +1,6 @@
 "use client";
 
-import { FileAtomDataType, FileStatus } from "@/@types/file";
+import { FileState, FileStatus } from "@/@types/file";
 import { UploadIcon } from "@radix-ui/react-icons";
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { DropEvent, FileRejection, useDropzone } from "react-dropzone";
@@ -12,7 +12,7 @@ const mimetypes = {
 };
 
 interface Props {
-  setFiles: Dispatch<SetStateAction<FileAtomDataType[]>>;
+  setFiles: Dispatch<SetStateAction<FileState[]>>;
 }
 export function MyDropzone({ setFiles }: Props) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
