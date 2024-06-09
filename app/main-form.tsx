@@ -18,17 +18,14 @@ import FormSelect from "@/components/FormSelect";
 import { useState } from "react";
 import { MyDropzone } from "../components/Dropzone";
 import { FileState, FileStatus } from "@/@types/file";
-import { ReducerMany, ReducerReturnProps } from "@/lib/reducer";
-import { computeSize } from "@/lib/size";
+import { ReducerMany, ReturnProps } from "@/lib/reducer";
+import { toByte, toMB } from "@/lib/size";
 import { toast } from "sonner";
 import UploadedList from "@/components/UploadedList";
 
 const schema = z.object({
   unit: z.enum(["kb", "mb"]),
-  minSize: z.coerce
-    .number()
-    .int()
-    .positive({ message: "โปรดป้อนตัวเลขที่มีค่ามากกว่า 0" }),
+  type: z.enum(["reduce", "boost"]),
   maxSize: z.coerce
     .number()
     .int()
@@ -45,12 +42,12 @@ export default function MainForm() {
   const [isSubmit, setSubmit] = useState<boolean>(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { minSize: 100, maxSize: 600, unit: "kb" },
+    defaultValues: { unit: "kb", type: "reduce", maxSize: 600 },
   });
 
   const compressedToDoUpdate = (
     file: FileState,
-    reduced: ReducerReturnProps[]
+    reduced: ReturnProps[]
   ): FileState => {
     const compressedFile = reduced.find(
       (z) => z.blobURL === file.blobURL && z.status === "done"
@@ -84,9 +81,10 @@ export default function MainForm() {
     }
     try {
       setSubmit(true);
-      const maxSize = computeSize(value.unit, value.maxSize);
+      const maxSize = toMB(value.unit, value.maxSize);
       const reduced = await ReducerMany(
         files.filter((x) => x.status !== "done"),
+        minSize,
         maxSize,
         setCompressingPercent
       );
@@ -98,6 +96,8 @@ export default function MainForm() {
       });
 
       setFiles(updatedFiles);
+    } catch (error) {
+      console.log(error);
     } finally {
       setSubmit(false);
     }

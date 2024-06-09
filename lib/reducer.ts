@@ -1,14 +1,21 @@
 import { FileState } from "@/@types/file";
 import bic, { Options } from "browser-image-compression";
+import { toMB } from "./size";
 
 interface ReducerProps {
-  imageFile: FileState;
+  data: FileState;
   maxSizeMB: number;
   signal?: AbortSignal;
   fileType?: string;
   setCompressingPercent: (blobURL: string, percent: number) => void;
 }
-export type ReducerReturnProps = {
+interface BoosterProps {
+  data: FileState;
+  maxSizeMB: number;
+  fileType?: string;
+  setCompressingPercent: (blobURL: string, percent: number) => void;
+}
+export type ReturnProps = {
   blobURL: string;
   status: FileState["status"];
   savedPercent: FileState["savedPercent"];
@@ -17,12 +24,12 @@ export type ReducerReturnProps = {
 };
 
 export async function Reducer({
-  imageFile: file,
+  data: file,
   maxSizeMB,
   signal,
   fileType = "image/jpeg",
   setCompressingPercent,
-}: ReducerProps): Promise<ReducerReturnProps> {
+}: ReducerProps): Promise<ReturnProps> {
   const options: Options = {
     initialQuality: 0.85,
     alwaysKeepResolution: false,
@@ -71,16 +78,52 @@ export async function Reducer({
 
 export async function ReducerMany(
   imageFiles: FileState[],
+  type: "reduce" | "boost",
   maxSizeMB: number,
   setCompressingPercent: (blobURL: string, percent: number) => void
 ) {
   return await Promise.all(
-    imageFiles.map((imageFile) =>
-      Reducer({
-        imageFile,
+    imageFiles.map((imageFile) => {
+      if (type === "reduce") {
+        return Reducer({
+          data: imageFile,
+          maxSizeMB,
+          setCompressingPercent,
+        });
+      }
+      return Booster({
+        data: imageFile,
         maxSizeMB,
         setCompressingPercent,
-      })
-    )
+      });
+    })
   );
+}
+export function Booster({
+  data,
+  maxSizeMB,
+  fileType = "image/jpeg",
+  setCompressingPercent,
+}: BoosterProps): ReturnProps {
+  const currentSizeMB = toMB("byte", data.file.size);
+  const sizeDifferenceMB = maxSizeMB - currentSizeMB;
+
+  if (sizeDifferenceMB <= 0) {
+    // No need to increase size if the new size is smaller than or equal to the original size
+    return { ...data, savedPercent: 0 }; // Return data with savedPercent as 0
+  }
+
+  // Create a Uint8Array buffer with the desired size difference
+  const buffer = new Uint8Array(sizeDifferenceMB * 1024 * 1024);
+
+  // Create a new File object with the original file's data and the additional buffer
+  const newFile = new File([data.file, buffer], data.file.name, {
+    type: fileType,
+    lastModified: Date.now(),
+  });
+
+  // Set the saved percent to 100 since we're effectively adding the entire difference
+  setCompressingPercent(data.blobURL, 100);
+
+  return { ...data, status: "done", savedPercent: 100, newFile };
 }
