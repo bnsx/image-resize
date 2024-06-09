@@ -84,7 +84,7 @@ export default function MainForm() {
     if (files.length === 0) {
       return toast.error("โปรดอัพโหลดภาพ");
     }
-    if (files.every((x) => x.status === "done" || x.status === "nochange")) {
+    if (files.every((x) => x.status === "done")) {
       return;
     }
     try {
