@@ -1,7 +1,7 @@
-import { FileAtomDataType } from "@/states/file";
+import { FileState } from "@/@types/file";
 import * as uzip from "uzip";
 
-export const downloadAll = async (files: FileAtomDataType[]) => {
+export const downloadAll = async (files: FileState[]) => {
   const zip: { [key: string]: Uint8Array } = {};
 
   const completedFiles = files.filter((file) => file.status === "done");
