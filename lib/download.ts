@@ -1,20 +1,22 @@
 import { FileAtomDataType } from "@/states/file";
-import JSZip from "jszip";
+import * as uzip from "uzip";
 
 export const downloadAll = async (files: FileAtomDataType[]) => {
-  const zip = new JSZip();
+  const zip: { [key: string]: Uint8Array } = {};
+
   const completedFiles = files.filter((file) => file.status === "done");
 
   for (const file of completedFiles) {
     if (file.newFile) {
       const blob = file.newFile;
-      // Ensure the filename includes the extension
       const filename = file.newFile.name;
-      zip.file(`${filename}.jpg`, blob);
+      const arrayBuffer = await blob.arrayBuffer();
+      zip[`${filename}.jpg`] = new Uint8Array(arrayBuffer);
     }
   }
 
-  const content = await zip.generateAsync({ type: "blob" });
+  const compressed = uzip.encode(zip);
+  const content = new Blob([compressed], { type: "application/zip" });
   const url = URL.createObjectURL(content);
   const a = document.createElement("a");
   a.href = url;
