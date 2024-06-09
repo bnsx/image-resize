@@ -25,6 +25,10 @@ import UploadedList from "@/components/UploadedList";
 
 const schema = z.object({
   unit: z.enum(["kb", "mb"]),
+  minSize: z.coerce
+    .number()
+    .int()
+    .positive({ message: "โปรดป้อนตัวเลขที่มีค่ามากกว่า 0" }),
   maxSize: z.coerce
     .number()
     .int()
