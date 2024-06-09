@@ -44,7 +44,7 @@ export default function UploadedList({ files, removeFile }: Props) {
                     <Badge className="text-xs w-fit" variant={"outline"}>
                       {handleStatusUpdate(obj.status)}
                     </Badge>
-                    {obj.status === "done" && (
+                    {(obj.status === "done" || obj.status === "nochange") && (
                       <Badge className="text-xs" variant={"outline"}>
                         ประหยัด {obj.savedPercent}%
                       </Badge>

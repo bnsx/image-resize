@@ -17,9 +17,9 @@ import FormInput from "@/components/FormInput";
 import FormSelect from "@/components/FormSelect";
 import { useState } from "react";
 import { MyDropzone } from "../components/Dropzone";
-import { FileState, FileStatus } from "@/@types/file";
+import { FileState } from "@/@types/file";
 import { ReducerMany, ReturnProps } from "@/lib/reducer";
-import { toByte, toMB } from "@/lib/size";
+import { toByte } from "@/lib/size";
 import { toast } from "sonner";
 import UploadedList from "@/components/UploadedList";
 
@@ -36,7 +36,10 @@ const unit_data = [
   { label: "KB", value: "kb" },
   { label: "MB", value: "mb" },
 ];
-
+const type_data = [
+  { label: "ลดขนาดไฟล์", value: "reduce" },
+  { label: "เพิ่มขนาดไฟล์", value: "boost" },
+];
 export default function MainForm() {
   const [files, setFiles] = useState<FileState[]>([]);
   const [isSubmit, setSubmit] = useState<boolean>(false);
@@ -49,10 +52,8 @@ export default function MainForm() {
     file: FileState,
     reduced: ReturnProps[]
   ): FileState => {
-    const compressedFile = reduced.find(
-      (z) => z.blobURL === file.blobURL && z.status === "done"
-    );
-    if (compressedFile) {
+    const compressedFile = reduced.filter((z) => z.blobURL === file.blobURL)[0];
+    if (compressedFile.status === "done") {
       return {
         ...file,
         newFile: compressedFile.newFile,
@@ -61,7 +62,11 @@ export default function MainForm() {
         status: compressedFile.status,
       };
     }
-    return { ...file, status: "incomplete" as FileStatus, savedPercent: 0 };
+    return {
+      ...file,
+      savedPercent: compressedFile.savedPercent,
+      status: compressedFile.status,
+    };
   };
   const setCompressingPercent = (blobURL: string, progress: number) => {
     setFiles((prev) =>
@@ -79,12 +84,15 @@ export default function MainForm() {
     if (files.length === 0) {
       return toast.error("โปรดอัพโหลดภาพ");
     }
+    if (files.every((x) => x.status === "done" || x.status === "nochange")) {
+      return;
+    }
     try {
       setSubmit(true);
-      const maxSize = toMB(value.unit, value.maxSize);
+      const maxSize = toByte(value.unit, value.maxSize);
       const reduced = await ReducerMany(
         files.filter((x) => x.status !== "done"),
-        minSize,
+        value.type,
         maxSize,
         setCompressingPercent
       );
@@ -94,10 +102,7 @@ export default function MainForm() {
         }
         return compressedToDoUpdate(file, reduced);
       });
-
       setFiles(updatedFiles);
-    } catch (error) {
-      console.log(error);
     } finally {
       setSubmit(false);
     }
@@ -124,26 +129,24 @@ export default function MainForm() {
                 <FormInput
                   control={form.control}
                   schema={schema}
-                  name={"minSize"}
-                  label="ขนาดไฟล์ต่ำสุด (Min Size)"
-                  placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
-                  className="w-full"
-                />
-                <FormInput
-                  control={form.control}
-                  schema={schema}
                   name={"maxSize"}
                   label="ขนาดไฟล์สูงสุด (Max Size)"
                   placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
                   className="w-full"
                 />
+                <FormSelect
+                  control={form.control}
+                  schema={schema}
+                  name={"unit"}
+                  data={unit_data}
+                />
               </div>
               <FormSelect
                 control={form.control}
                 schema={schema}
-                name={"unit"}
-                data={unit_data}
-                label="หน่วย KB / MB"
+                name={"type"}
+                data={type_data}
+                label="เพิ่ม / ลด"
               />
             </CardContent>
             <CardFooter>

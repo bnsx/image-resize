@@ -17,6 +17,7 @@ const statusTranslations: Record<FileStatus, string> = {
   inprogress: "กำลังทำงาน",
   done: "เสร็จสิ้น",
   incomplete: "เกิดข้อผิดพลาด",
+  nochange: "ไม่เปลี่ยนแปลง",
 };
 
 export const handleStatusUpdate = (status: FileStatus): string => {

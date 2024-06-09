@@ -1,4 +1,9 @@
-export type FileStatus = "wait" | "inprogress" | "done" | "incomplete";
+export type FileStatus =
+  | "wait"
+  | "inprogress"
+  | "done"
+  | "incomplete"
+  | "nochange";
 export type FileState = {
   status: FileStatus;
   file: File;

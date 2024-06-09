@@ -11,7 +11,7 @@ interface ReducerProps {
 }
 interface BoosterProps {
   data: FileState;
-  maxSizeMB: number;
+  maxSize: number;
   fileType?: string;
   setCompressingPercent: (blobURL: string, percent: number) => void;
 }
@@ -79,21 +79,21 @@ export async function Reducer({
 export async function ReducerMany(
   imageFiles: FileState[],
   type: "reduce" | "boost",
-  maxSizeMB: number,
+  maxSize: number,
   setCompressingPercent: (blobURL: string, percent: number) => void
-) {
+): Promise<ReturnProps[]> {
   return await Promise.all(
     imageFiles.map((imageFile) => {
-      if (type === "reduce") {
-        return Reducer({
+      if (type === "boost") {
+        return Booster({
           data: imageFile,
-          maxSizeMB,
+          maxSize,
           setCompressingPercent,
         });
       }
-      return Booster({
+      return Reducer({
         data: imageFile,
-        maxSizeMB,
+        maxSizeMB: toMB("byte", maxSize),
         setCompressingPercent,
       });
     })
@@ -101,29 +101,35 @@ export async function ReducerMany(
 }
 export function Booster({
   data,
-  maxSizeMB,
+  maxSize,
   fileType = "image/jpeg",
   setCompressingPercent,
 }: BoosterProps): ReturnProps {
+  if (data.file.size > maxSize) {
+    setCompressingPercent(data.blobURL, 100);
+    return { ...data, status: "nochange", savedPercent: 0 };
+  }
   const currentSizeMB = toMB("byte", data.file.size);
-  const sizeDifferenceMB = maxSizeMB - currentSizeMB;
+  const sizeDifferenceMB = toMB("byte", maxSize) - currentSizeMB;
 
   if (sizeDifferenceMB <= 0) {
     // No need to increase size if the new size is smaller than or equal to the original size
-    return { ...data, savedPercent: 0 }; // Return data with savedPercent as 0
+    return { ...data, status: "nochange", savedPercent: 0 }; // Return data with savedPercent as 0
   }
 
   // Create a Uint8Array buffer with the desired size difference
   const buffer = new Uint8Array(sizeDifferenceMB * 1024 * 1024);
+  const timestamp = Date.now();
+  const newFilename = `boosted_${timestamp}`;
 
   // Create a new File object with the original file's data and the additional buffer
-  const newFile = new File([data.file, buffer], data.file.name, {
+  const newFile = new File([data.file, buffer], newFilename, {
     type: fileType,
-    lastModified: Date.now(),
+    lastModified: timestamp,
   });
 
   // Set the saved percent to 100 since we're effectively adding the entire difference
   setCompressingPercent(data.blobURL, 100);
 
-  return { ...data, status: "done", savedPercent: 100, newFile };
+  return { ...data, status: "done", savedPercent: 0, newFile };
 }
