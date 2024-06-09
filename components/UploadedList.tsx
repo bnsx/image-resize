@@ -1,9 +1,8 @@
 "use client";
 
-import { filesAtom, handleStatusUpdate } from "@/states/file";
-import { useAtom } from "jotai";
+import { FileAtomDataType } from "@/@types/file";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, handleStatusUpdate } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Cross2Icon } from "@radix-ui/react-icons";
@@ -13,13 +12,12 @@ import DownloadButton from "@/components/DownloadButton";
 import { formatFileSize } from "@/lib/size";
 import { downloadAll } from "@/lib/download";
 
-export default function UploadedList() {
-  const [files, setFiles] = useAtom(filesAtom);
+interface Props {
+  files: FileAtomDataType[];
+  removeFile: (blobURL: string) => void;
+}
 
-  const removeObject = (blobURL: string) => {
-    setFiles(files.filter((x) => x.blobURL !== blobURL));
-  };
-
+export default function UploadedList({ files, removeFile }: Props) {
   return (
     <>
       <ScrollArea
@@ -76,7 +74,7 @@ export default function UploadedList() {
                   type="button"
                   size={"icon"}
                   variant={"outline"}
-                  onClick={() => removeObject(obj.blobURL)}
+                  onClick={() => removeFile(obj.blobURL)}
                 >
                   <Cross2Icon />
                 </Button>

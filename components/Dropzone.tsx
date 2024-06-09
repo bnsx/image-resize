@@ -1,24 +1,26 @@
 "use client";
 
-import { FileAtomStatus, filesAtom } from "@/states/file";
+import { FileAtomDataType, FileStatus } from "@/@types/file";
 import { UploadIcon } from "@radix-ui/react-icons";
-import { useAtom } from "jotai";
-import { useCallback } from "react";
+import { Dispatch, SetStateAction, useCallback } from "react";
 import { DropEvent, FileRejection, useDropzone } from "react-dropzone";
 
 const minSize = 100 * 1024; // 100kb
-const acceptMimeTypes = {
+const mimetypes = {
   "image/jpeg": [".jpeg", ".jpg"],
   "image/png": [".png"],
 };
-export function MyDropzone() {
-  const [files, setFiles] = useAtom(filesAtom);
+
+interface Props {
+  setFiles: Dispatch<SetStateAction<FileAtomDataType[]>>;
+}
+export function MyDropzone({ setFiles }: Props) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFiles((prevFiles) => [
         ...prevFiles,
         ...acceptedFiles.map((file) => ({
-          status: "wait" as FileAtomStatus,
+          status: "wait" as FileStatus,
           file,
           blobURL: URL.createObjectURL(file),
           savedPercent: 0,
@@ -37,7 +39,7 @@ export function MyDropzone() {
     onDropRejected,
     minSize,
     multiple: true,
-    accept: acceptMimeTypes,
+    accept: mimetypes,
   });
   return (
     <div
