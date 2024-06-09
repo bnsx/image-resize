@@ -113,7 +113,7 @@ export default function MainForm() {
     setSubmit(false);
   };
   return (
-    <div className="translate-y-32 xl:px-0 px-2 grid xl:justify-center gap-1">
+    <div className="xl:translate-y-32 grid xl:justify-center gap-1">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onReset={onReset}>
           <Card className="xl:w-96">
@@ -162,7 +162,7 @@ export default function MainForm() {
           </Card>
         </form>
       </Form>
-      <UploadedList files={files} removeFile={removeFile} />
+      <UploadedList files={files} removeFile={removeFile} isSubmit={isSubmit} />
     </div>
   );
 }

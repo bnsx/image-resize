@@ -15,9 +15,10 @@ import { downloadAll } from "@/lib/download";
 interface Props {
   files: FileState[];
   removeFile: (blobURL: string) => void;
+  isSubmit: boolean;
 }
 
-export default function UploadedList({ files, removeFile }: Props) {
+export default function UploadedList({ files, removeFile, isSubmit }: Props) {
   return (
     <>
       <ScrollArea
@@ -75,6 +76,7 @@ export default function UploadedList({ files, removeFile }: Props) {
                   size={"icon"}
                   variant={"outline"}
                   onClick={() => removeFile(obj.blobURL)}
+                  disabled={isSubmit}
                 >
                   <Cross2Icon />
                 </Button>
@@ -88,6 +90,7 @@ export default function UploadedList({ files, removeFile }: Props) {
         <Button
           type="button"
           variant={"outline"}
+          className="w-full"
           onClick={() => downloadAll(files)}
         >
           ดาวน์โหลดทั้งหมด
