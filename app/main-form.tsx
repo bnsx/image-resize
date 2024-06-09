@@ -45,7 +45,7 @@ export default function MainForm() {
   const [isSubmit, setSubmit] = useState<boolean>(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { maxSize: 600, unit: "kb" },
+    defaultValues: { minSize: 100, maxSize: 600, unit: "kb" },
   });
 
   const compressedToDoUpdate = (
@@ -124,18 +124,27 @@ export default function MainForm() {
                 <FormInput
                   control={form.control}
                   schema={schema}
+                  name={"minSize"}
+                  label="ขนาดไฟล์ต่ำสุด (Min Size)"
+                  placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
+                  className="w-full"
+                />
+                <FormInput
+                  control={form.control}
+                  schema={schema}
                   name={"maxSize"}
                   label="ขนาดไฟล์สูงสุด (Max Size)"
                   placeholder="ป้อนขนาดไฟล์ที่ต้องการไม่ให้เกิน"
                   className="w-full"
                 />
-                <FormSelect
-                  control={form.control}
-                  schema={schema}
-                  name={"unit"}
-                  data={unit_data}
-                />
               </div>
+              <FormSelect
+                control={form.control}
+                schema={schema}
+                name={"unit"}
+                data={unit_data}
+                label="หน่วย KB / MB"
+              />
             </CardContent>
             <CardFooter>
               <div className="w-full flex justify-end gap-1">
