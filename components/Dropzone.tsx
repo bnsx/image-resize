@@ -5,7 +5,7 @@ import { UploadIcon } from "@radix-ui/react-icons";
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { DropEvent, FileRejection, useDropzone } from "react-dropzone";
 
-const minSize = 100 * 1024; // 100kb
+const minSize = 10 * 1024; // 10KB
 const mimetypes = {
   "image/jpeg": [".jpeg", ".jpg"],
   "image/png": [".png"],
