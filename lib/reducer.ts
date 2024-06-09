@@ -1,4 +1,4 @@
-import { FileAtomDataType } from "@/states/file";
+import { FileAtomDataType } from "@/@types/file";
 import bic, { Options } from "browser-image-compression";
 
 interface ReducerProps {
@@ -6,7 +6,7 @@ interface ReducerProps {
   maxSizeMB: number;
   signal?: AbortSignal;
   fileType?: string;
-  compressingPercent: (blobURL: string, percent: number) => void;
+  setCompressingPercent: (blobURL: string, percent: number) => void;
 }
 export type ReducerReturnProps = {
   blobURL: string;
@@ -21,7 +21,7 @@ export async function Reducer({
   maxSizeMB,
   signal,
   fileType = "image/jpeg",
-  compressingPercent,
+  setCompressingPercent,
 }: ReducerProps): Promise<ReducerReturnProps> {
   const options: Options = {
     initialQuality: 0.85,
@@ -32,7 +32,7 @@ export async function Reducer({
     fileType,
     signal,
     onProgress(progress) {
-      compressingPercent(file.blobURL, progress);
+      setCompressingPercent(file.blobURL, progress);
     },
   };
   try {
@@ -72,11 +72,15 @@ export async function Reducer({
 export async function ReducerMany(
   imageFiles: FileAtomDataType[],
   maxSizeMB: number,
-  compressingPercent: (blobURL: string, percent: number) => void
+  setCompressingPercent: (blobURL: string, percent: number) => void
 ) {
   return await Promise.all(
     imageFiles.map((imageFile) =>
-      Reducer({ imageFile, maxSizeMB, compressingPercent })
+      Reducer({
+        imageFile,
+        maxSizeMB,
+        setCompressingPercent,
+      })
     )
   );
 }
