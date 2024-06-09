@@ -9,6 +9,7 @@ export default function Footer() {
       <Link
         href={"https://github.com/bnsx/image-size-reducer"}
         className="flex justify-center"
+        aria-label="Github"
       >
         <MdiGithub className="w-7 h-7" />
       </Link>
